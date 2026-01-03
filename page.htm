@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sitzordnung</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+    integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+    crossorigin="anonymous"></script>
+  <script>
+    const STUDENTS = {
+      123: { "id": 123, "name": "Arnoldl, Ella", "cls": "2ES", "lang": "de" },
+      124: { "id": 124, "name": "Bimanns, Nicholas", "cls": "2ES", "lang": "fr" },
+      125: { "id": 125, "name": "Chapmanx, Brandon", "cls": "2ES", "lang": "de" },
+      126: { "id": 126, "name": "Colemans, Carl", "cls": "2ES", "lang": "de" },
+      127: { "id": 127, "name": "Cornishw, Hilda", "cls": "2ES", "lang": "fr" },
+      128: { "id": 128, "name": "Dowdy, Emma", "cls": "2ES", "lang": "fr" },
+      129: { "id": 129, "name": "Greeneg, Linus", "cls": "2ES", "lang": "fr" },
+      130: { "id": 130, "name": "Grossartigh, Arthur", "cls": "2ES", "lang": "de" },
+      131: { "id": 131, "name": "Guintardt, Gavin", "cls": "2ES", "lang": "fr" },
+      132: { "id": 132, "name": "Herforderlichu, Jacob", "cls": "2ES", "lang": "fr" },
+      133: { "id": 133, "name": "Hilll, Sophie", "cls": "2ES", "lang": "fr" },
+      134: { "id": 134, "name": "Kremerlangi, Jason", "cls": "2ES", "lang": "fr" },
+      135: { "id": 135, "name": "Langdona, Sam", "cls": "2ES", "lang": "fr" },
+      136: { "id": 136, "name": "Manningr, Christopherus-Maxime", "cls": "2ES", "lang": "fr" },
+      137: { "id": 137, "name": "McLeanh, Paul", "cls": "2ES", "lang": "fr" },
+      138: { "id": 138, "name": "Parsonse, Penelope", "cls": "2ES", "lang": "fr" },
+      139: { "id": 139, "name": "Pooler, Nicola", "cls": "2ES", "lang": "de" },
+      140: { "id": 140, "name": "Randallw, Fiona", "cls": "2ES", "lang": "fr" },
+      141: { "id": 141, "name": "Parsonse, Penelope", "cls": "2ES", "lang": "fr" },
+      142: { "id": 142, "name": "Herforderlichu, Jacob", "cls": "2ES", "lang": "fr" },
+      143: { "id": 143, "name": "Maier, Heinz", "cls": "2ES", "lang": "fr" },
+      144: { "id": 144, "name": "Müller, Bertram", "cls": "2ES", "lang": "fr" },
+      145: { "id": 145, "name": "Gauß, Carl Friedrich", "cls": "2ES", "lang": "fr" },
+    };
+
+    const NUM_STUDENTS = Object.entries(STUDENTS).length;
+
+    CONFIG = {
+      showLastnames: true,
+      teachersView: true,
+      rows: 3,
+      columns: 8
+    };
+
+    const MAX_ROWS = 6;
+    const MAX_COLUMNS = 10;
+
+    let grid = [];
+    let gaps = [];
+    let selectedCoords = null;
+    let changed = [];
+
+    function toggleView() {
+      CONFIG.teachersView = !CONFIG.teachersView;
+      renderGrid();
+    }
+
+    function rebuildGrid() {
+      grid = [];
+      for (let i = 0; i < CONFIG.rows; i++) {
+        const row = [];
+        for (let j = 0; j < CONFIG.columns; j++) {
+          row.push({
+            id: i + "_" + j,
+            studentId: null
+          });
+        }
+        grid.push(row);
+      }
+
+      checkButtons();
+      renderGrid();
+    }
+
+    function checkButtons() {
+      $("#deleteRow").prop("disabled", (CONFIG.rows - 1) * CONFIG.columns < NUM_STUDENTS);
+      $("#addRow").prop("disabled", CONFIG.rows >= MAX_ROWS);
+      $("#deleteColumn").prop("disabled", CONFIG.rows * (CONFIG.columns - 1) < NUM_STUDENTS);
+      $("#addColumn").prop("disabled", CONFIG.cols >= MAX_COLUMNS);
+    }
+
+    function renderGrid() {
+      const classRoom = $("#classroom");
+      classRoom.empty();
+
+      const directionCls = CONFIG.teachersView ? "flex-column-reverse" : "flex-column";
+      const container = $("<div>", {
+        class: `d-flex justify-center align-content-center align-items-center m-5 ${directionCls}`
+      });
+      classRoom.append(container);
+
+      // Teacher node
+      const $el = $('<div>', {
+        class: 'justify-center border border-dark w-25 text-center py-4 m-3',
+        text: 'Herr Charra',
+        id: 'teacher'
+      });
+      container.append($el);
+
+      // Grid nodes
+      for (let rowIdx = 0; rowIdx < grid.length; rowIdx++) {
+        const row = grid[rowIdx];
+        const rowDirectionCls = CONFIG.teachersView ? "flex-row-reverse" : "flex-row";
+        let rowElem = $('<div>', {
+          class: "m-3 d-flex align-items-start " + rowDirectionCls,
+        });
+
+        for (let colIdx = 0; colIdx < row.length; colIdx++) {
+          const seat = row[colIdx];
+          let cssClasses = "seat border border-dark text-center px-1 d-inline-block align-items-center align-content-center";
+          let seatText = "";
+
+          if (seat.studentId) {
+            const student = STUDENTS[seat.studentId];
+            const displayName = student.name.split(",")[1];
+            seatText = `${displayName}<br> (${student.cls})`;
+
+            if (selectedCoords && rowIdx == selectedCoords[0] && colIdx == selectedCoords[1]) {
+              cssClasses += " highlighted";
+            }
+
+            if (changed.indexOf(seat.studentId) > -1) {
+              cssClasses += " changed";
+            }
+          }
+
+          $('<div>', {
+            class: cssClasses,
+            id: seat.id,
+            html: seatText
+          }).appendTo(rowElem);
+
+          if (colIdx < row.length - 1) {
+            $('<div>', {
+              class: gaps.indexOf(seat.id) === -1 ? "gap" : "gap gap_active"
+            })
+              .on("click", () => toggleGap(seat.id))
+              .appendTo(rowElem);
+          }
+        };
+
+        container.append(rowElem);
+      }
+
+      $(".seat").off("click");
+      $(".seat").on("click", (e) => onSelect(e.target.id));
+      changed = [];
+    }
+
+    function toggleGap(seatId) {
+      if (gaps.indexOf(seatId) > -1) {
+        gaps = gaps.filter(g => g !== seatId);
+      } else {
+        gaps.push(seatId);
+      }
+      renderGrid();
+    }
+
+    function fillStudents() {
+      const unseated = getUnseatedStudents();
+      for (const id of unseated) {
+        let attempts = 0;
+        while (attempts < 10000) {
+          const randRow = Math.floor(Math.random() * CONFIG.rows);
+          const randCol = Math.floor(Math.random() * CONFIG.columns);
+
+          if (!grid[randRow][randCol].studentId) {
+            grid[randRow][randCol].studentId = id;
+            break;
+          }
+          attempts++;
+        }
+      }
+
+      renderGrid();
+    }
+
+    function changeGrid(deltaRows, deltaCols) {
+      CONFIG.rows = Math.min(MAX_ROWS, Math.max(1, CONFIG.rows + deltaRows));
+      CONFIG.columns = Math.min(MAX_COLUMNS, Math.max(3, CONFIG.columns + deltaCols));
+      rebuildGrid();
+    }
+
+    function getUnseatedStudents() {
+      const ids = Object.keys(STUDENTS);
+      const seated = [];
+      for (let i = 0; i < CONFIG.rows; i++) {
+        for (let j = 0; j < CONFIG.columns; j++) {
+          if (grid[i][j].studentId) {
+            seated.push(grid[i][j].studentId);
+          }
+        }
+      }
+      return ids.filter(i => seated.indexOf(i) === -1);
+    }
+
+    function onSelect(gridId) {
+      const [row, col] = gridId.split("_");
+      const cell = grid[row][col];
+
+      if (!selectedCoords) {
+        if (cell.studentId) {
+          selectedCoords = [+row, +col];
+        } else {
+          console.log("Empty cell not selectable on first click");
+        }
+      } else {
+        const originCell = grid[selectedCoords[0]][selectedCoords[1]];
+        if (cell.studentId) {
+          changed = [cell.studentId, originCell.studentId];
+          const swapStudentId = originCell.studentId;
+          originCell.studentId = cell.studentId;
+          cell.studentId = swapStudentId;
+        } else {
+          changed = [originCell.studentId];
+          cell.studentId = originCell.studentId;
+          originCell.studentId = null;
+        }
+        selectedCoords = null;
+      }
+      renderGrid();
+    }
+
+    function init() {
+      rebuildGrid();
+    }
+
+  </script>
+  <style>
+    .seat {
+      width: 100px;
+      height: 100px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .changed {
+      animation: justChanged 1s ease forwards;
+    }
+
+    @keyframes justChanged {
+      from {
+        font-size: 0;
+        background-color: lightblue;
+      }
+
+      to {
+        font-size: 15px;
+        background-color: white;
+      }
+    }
+
+    .highlighted {
+      background-color: rgb(125, 193, 118);
+      color: white;
+      font-weight: bold;
+    }
+
+    .gap {
+      width: 5px;
+      height: 100px;
+    }
+
+    .gap:hover {
+      background-color: lightblue;
+      cursor: ew-resize;
+    }
+
+    .gap_active {
+      width: 50px;
+    }
+  </style>
+</head>
+
+<body onload="init()">
+  <button class="btn btn-primary mx-2 my-1" onclick="toggleView()">Ansicht wechseln</button>
+  <button class="btn btn-primary mx-2 my-1" onclick="fillStudents()">Zufällige Sitzordnung</button>
+  <button id="addRow" class="btn btn-primary mx-2 my-1" onclick="changeGrid(1, 0)">Reihe hinzufügen</button>
+  <button id="deleteRow" class="btn btn-primary mx-2 my-1" onclick="changeGrid(-1, 0)">Reihe entfernen</button>
+  <button id="addColumn" class="btn btn-primary mx-2 my-1" onclick="changeGrid(0, 1)">Spalte hinzufügen</button>
+  <button id="deleteColumn" class="btn btn-primary mx-2 my-1" onclick="changeGrid(0, -1)">Spalte entfernen</button>
+
+  <div id="classroom">
+  </div>
+
+  <div id="unseated">
+  </div>
+</body>
+
+</html>
