@@ -54,8 +54,9 @@
 
     let grid = [];
     let gaps = [];
-    let selectedCoords = null;
     let changed = [];
+    let unseated = [];
+    let selectedStudentId = null;
 
     function toggleView() {
       CONFIG.teachersView = !CONFIG.teachersView;
@@ -122,7 +123,7 @@
             const displayName = student.name.split(",")[1];
             seatText = `${displayName}<br> (${student.cls})`;
 
-            if (selectedCoords && rowIdx == selectedCoords[0] && colIdx == selectedCoords[1]) {
+            if (seat.studentId === selectedStudentId) {
               cssClasses += " highlighted";
             }
 
@@ -149,9 +150,21 @@
         container.append(rowElem);
       }
 
+      changed = [];
+      
+      unseated = getUnseatedStudents();
+      const unseatedElem = $("#unseated");
+      unseatedElem.empty();
+      for (const [idx, s] of unseated.entries()) {
+        $('<div>', {
+          class: "seat border border-dark text-center px-1 mb-2 mr-2 align-items-center align-content-center " + (selectedStudentId === s ? "highlighted" : ""),
+          id: "u_" + idx,
+          html: STUDENTS[s].name
+        }).appendTo(unseatedElem);
+      }
+      
       $(".seat").off("click");
       $(".seat").on("click", (e) => onSelect(e.target.id));
-      changed = [];
     }
 
     function toggleGap(seatId) {
@@ -201,29 +214,55 @@
       return ids.filter(i => seated.indexOf(i) === -1);
     }
 
-    function onSelect(gridId) {
-      const [row, col] = gridId.split("_");
-      const cell = grid[row][col];
+    function findCellWithStudentId(sid) {
+      for (let i = 0; i < CONFIG.rows; i++) {
+        for (let j = 0; j < CONFIG.columns; j++) {
+          if (grid[i][j].studentId === sid) {
+            return grid[i][j];
+          }
+        }
+      }
+    }
 
-      if (!selectedCoords) {
-        if (cell.studentId) {
-          selectedCoords = [+row, +col];
+    function onSelect(gridId) {
+      let [cell, latestClickStudentId] = [null, null];
+
+      if (gridId.startsWith("u")) {
+        const idx = gridId.split("_")[1];
+        latestClickStudentId = unseated[idx];
+      } else {
+        const [row, col] = gridId.split("_");
+        cell = grid[row][col];
+        latestClickStudentId = cell.studentId;
+      }
+
+      if (!selectedStudentId) {
+        if (latestClickStudentId) {
+          selectedStudentId = latestClickStudentId;
         } else {
           console.log("Empty cell not selectable on first click");
         }
       } else {
-        const originCell = grid[selectedCoords[0]][selectedCoords[1]];
-        if (cell.studentId) {
-          changed = [cell.studentId, originCell.studentId];
-          const swapStudentId = originCell.studentId;
-          originCell.studentId = cell.studentId;
-          cell.studentId = swapStudentId;
+        const originCell = findCellWithStudentId(selectedStudentId);
+        if (latestClickStudentId) {
+          if (originCell) {
+            const swapStudentId = originCell.studentId;
+            originCell.studentId = cell.studentId;
+            cell.studentId = swapStudentId;
+          } else {
+            cell.studentId = selectedStudentId;  
+          }
+          changed = [latestClickStudentId, selectedStudentId];
         } else {
-          changed = [originCell.studentId];
-          cell.studentId = originCell.studentId;
-          originCell.studentId = null;
+          if (originCell) {
+            cell.studentId = originCell.studentId;
+            originCell.studentId = null;
+          } else {
+            cell.studentId = selectedStudentId;
+          }
+          changed = [selectedStudentId];
         }
-        selectedCoords = null;
+        selectedStudentId = null;
       }
       renderGrid();
     }
@@ -235,6 +274,7 @@
   </script>
   <style>
     .seat {
+      color: black;
       width: 100px;
       height: 100px;
       cursor: pointer;
@@ -254,6 +294,7 @@
       to {
         font-size: 15px;
         background-color: white;
+        color: black;
       }
     }
 
@@ -290,8 +331,9 @@
   <div id="classroom">
   </div>
 
-  <div id="unseated">
+  <div id="unseated" class="m-5 d-flex flex-wrap align-items-start">
   </div>
+
 </body>
 
 </html>
