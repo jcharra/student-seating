@@ -83,7 +83,7 @@
       $("#deleteRow").prop("disabled", (CONFIG.rows - 1) * CONFIG.columns < NUM_STUDENTS);
       $("#addRow").prop("disabled", CONFIG.rows >= MAX_ROWS);
       $("#deleteColumn").prop("disabled", CONFIG.rows * (CONFIG.columns - 1) < NUM_STUDENTS);
-      $("#addColumn").prop("disabled", CONFIG.cols >= MAX_COLUMNS);
+      $("#addColumn").prop("disabled", CONFIG.columns >= MAX_COLUMNS);
     }
 
     function renderGrid() {
