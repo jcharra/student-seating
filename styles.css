@@ -1,0 +1,44 @@
+.seat {
+  color: black;
+  width: 100px;
+  height: 100px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.changed {
+  animation: justChanged 1s ease forwards;
+}
+
+@keyframes justChanged {
+  from {
+    font-size: 0;
+    background-color: lightblue;
+  }
+
+  to {
+    font-size: 15px;
+    background-color: white;
+    color: black;
+  }
+}
+
+.highlighted {
+  background-color: rgb(125, 193, 118);
+  color: white;
+  font-weight: bold;
+}
+
+.gap {
+  width: 5px;
+  height: 100px;
+}
+
+.gap:hover {
+  background-color: lightblue;
+  cursor: ew-resize;
+}
+
+.gap_active {
+  width: 50px;
+}

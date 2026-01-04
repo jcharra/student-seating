@@ -13,6 +13,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
     crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="styles.css">
   <script>
     const STUDENTS = {
       123: { "id": 123, "name": "Arnoldl, Ella", "cls": "2ES", "lang": "de" },
@@ -56,26 +57,28 @@
     let gaps = [];
     let changed = [];
     let unseated = [];
-    let selectedStudentId = null;
+    let firstClickedStudentId = null;
 
     function toggleView() {
       CONFIG.teachersView = !CONFIG.teachersView;
       renderGrid();
     }
 
-    function rebuildGrid() {
-      grid = [];
+    function rebuildGrid(keepSeatedStudents) {
+      const newGrid = [];
       for (let i = 0; i < CONFIG.rows; i++) {
         const row = [];
         for (let j = 0; j < CONFIG.columns; j++) {
+          const elemId = i + "_" + j;
           row.push({
-            id: i + "_" + j,
-            studentId: null
+            id: elemId,
+            studentId: keepSeatedStudents ? grid[i]?.[j]?.studentId : null
           });
         }
-        grid.push(row);
+        newGrid.push(row);
       }
 
+      grid = newGrid;
       checkButtons();
       renderGrid();
     }
@@ -99,7 +102,7 @@
 
       // Teacher node
       const $el = $('<div>', {
-        class: 'justify-center border border-dark w-25 text-center py-4 m-3',
+        class: 'justify-center border border-dark w-25 text-center py-3 my-2',
         text: 'Herr Charra',
         id: 'teacher'
       });
@@ -123,7 +126,7 @@
             const displayName = student.name.split(",")[1];
             seatText = `${displayName}<br> (${student.cls})`;
 
-            if (seat.studentId === selectedStudentId) {
+            if (seat.studentId === firstClickedStudentId) {
               cssClasses += " highlighted";
             }
 
@@ -150,19 +153,20 @@
         container.append(rowElem);
       }
 
+      // reset to empty list
       changed = [];
-      
+
       unseated = getUnseatedStudents();
       const unseatedElem = $("#unseated");
       unseatedElem.empty();
-      for (const [idx, s] of unseated.entries()) {
+      for (const [idx, studentId] of unseated.entries()) {
         $('<div>', {
-          class: "seat border border-dark text-center px-1 mb-2 mr-2 align-items-center align-content-center " + (selectedStudentId === s ? "highlighted" : ""),
+          class: "seat border border-dark text-center px-1 mb-2 mr-2 align-items-center align-content-center " + (firstClickedStudentId === studentId ? "highlighted" : ""),
           id: "u_" + idx,
-          html: STUDENTS[s].name
+          html: STUDENTS[studentId].name
         }).appendTo(unseatedElem);
       }
-      
+
       $(".seat").off("click");
       $(".seat").on("click", (e) => onSelect(e.target.id));
     }
@@ -176,7 +180,7 @@
       renderGrid();
     }
 
-    function fillStudents() {
+    function fillUnseatedStudents() {
       const unseated = getUnseatedStudents();
       for (const id of unseated) {
         let attempts = 0;
@@ -186,6 +190,7 @@
 
           if (!grid[randRow][randCol].studentId) {
             grid[randRow][randCol].studentId = id;
+            changed.push(id);
             break;
           }
           attempts++;
@@ -198,7 +203,7 @@
     function changeGrid(deltaRows, deltaCols) {
       CONFIG.rows = Math.min(MAX_ROWS, Math.max(1, CONFIG.rows + deltaRows));
       CONFIG.columns = Math.min(MAX_COLUMNS, Math.max(3, CONFIG.columns + deltaCols));
-      rebuildGrid();
+      rebuildGrid(true);
     }
 
     function getUnseatedStudents() {
@@ -236,102 +241,66 @@
         latestClickStudentId = cell.studentId;
       }
 
-      if (!selectedStudentId) {
+      if (!firstClickedStudentId) {
         if (latestClickStudentId) {
-          selectedStudentId = latestClickStudentId;
+          firstClickedStudentId = latestClickStudentId;
         } else {
           console.log("Empty cell not selectable on first click");
         }
       } else {
-        const originCell = findCellWithStudentId(selectedStudentId);
+        const originCell = findCellWithStudentId(firstClickedStudentId);
         if (latestClickStudentId) {
           if (originCell) {
             const swapStudentId = originCell.studentId;
             originCell.studentId = cell.studentId;
             cell.studentId = swapStudentId;
           } else {
-            cell.studentId = selectedStudentId;  
+            cell.studentId = firstClickedStudentId;
           }
-          changed = [latestClickStudentId, selectedStudentId];
+          changed = [latestClickStudentId, firstClickedStudentId];
         } else {
           if (originCell) {
             cell.studentId = originCell.studentId;
             originCell.studentId = null;
           } else {
-            cell.studentId = selectedStudentId;
+            cell.studentId = firstClickedStudentId;
           }
-          changed = [selectedStudentId];
+          changed = [firstClickedStudentId];
         }
-        selectedStudentId = null;
+        firstClickedStudentId = null;
       }
       renderGrid();
     }
 
+    function clearGrid() {
+      rebuildGrid(false);
+    }
+
     function init() {
-      rebuildGrid();
+      rebuildGrid(false);
     }
 
   </script>
-  <style>
-    .seat {
-      color: black;
-      width: 100px;
-      height: 100px;
-      cursor: pointer;
-      font-size: 15px;
-    }
-
-    .changed {
-      animation: justChanged 1s ease forwards;
-    }
-
-    @keyframes justChanged {
-      from {
-        font-size: 0;
-        background-color: lightblue;
-      }
-
-      to {
-        font-size: 15px;
-        background-color: white;
-        color: black;
-      }
-    }
-
-    .highlighted {
-      background-color: rgb(125, 193, 118);
-      color: white;
-      font-weight: bold;
-    }
-
-    .gap {
-      width: 5px;
-      height: 100px;
-    }
-
-    .gap:hover {
-      background-color: lightblue;
-      cursor: ew-resize;
-    }
-
-    .gap_active {
-      width: 50px;
-    }
-  </style>
 </head>
 
 <body onload="init()">
-  <button class="btn btn-primary mx-2 my-1" onclick="toggleView()">Ansicht wechseln</button>
-  <button class="btn btn-primary mx-2 my-1" onclick="fillStudents()">Zufällige Sitzordnung</button>
-  <button id="addRow" class="btn btn-primary mx-2 my-1" onclick="changeGrid(1, 0)">Reihe hinzufügen</button>
-  <button id="deleteRow" class="btn btn-primary mx-2 my-1" onclick="changeGrid(-1, 0)">Reihe entfernen</button>
-  <button id="addColumn" class="btn btn-primary mx-2 my-1" onclick="changeGrid(0, 1)">Spalte hinzufügen</button>
-  <button id="deleteColumn" class="btn btn-primary mx-2 my-1" onclick="changeGrid(0, -1)">Spalte entfernen</button>
+  <div class="d-flex justify-content-center w-100 my-2">
+    <button id="addRow" class="btn btn-primary mx-2 my-1" onclick="changeGrid(1, 0)">Reihe hinzufügen</button>
+    <button id="deleteRow" class="btn btn-primary mx-2 my-1" onclick="changeGrid(-1, 0)">Reihe entfernen</button>
+    <button id="addColumn" class="btn btn-primary mx-2 my-1" onclick="changeGrid(0, 1)">Spalte hinzufügen</button>
+    <button id="deleteColumn" class="btn btn-primary mx-2 my-1" onclick="changeGrid(0, -1)">Spalte entfernen</button>
+  </div>
 
   <div id="classroom">
   </div>
 
-  <div id="unseated" class="m-5 d-flex flex-wrap align-items-start">
+  <div>
+    <button class="btn btn-primary mx-2 my-1" onclick="toggleView()">Ansicht wechseln</button>
+    <button class="btn btn-primary mx-2 my-1" onclick="fillUnseatedStudents()">Zufällige Verteilung</button>
+    <button class="btn btn-warning mx-2 my-1" onclick="clearGrid()">Alle Plätze leeren</button>
+  </div>
+
+  <div id="unseated" class="m-3 d-flex flex-wrap align-items-start">
   </div>
 
 </body>
