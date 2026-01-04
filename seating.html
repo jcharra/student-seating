@@ -15,33 +15,36 @@
     crossorigin="anonymous"></script>
   <link rel="stylesheet" href="styles.css">
   <script>
-    const STUDENTS = {
-      123: { "id": 123, "name": "Arnoldl, Ella", "cls": "2ES", "lang": "de" },
-      124: { "id": 124, "name": "Bimanns, Nicholas", "cls": "2ES", "lang": "fr" },
-      125: { "id": 125, "name": "Chapmanx, Brandon", "cls": "2ES", "lang": "de" },
-      126: { "id": 126, "name": "Colemans, Carl", "cls": "2ES", "lang": "de" },
-      127: { "id": 127, "name": "Cornishw, Hilda", "cls": "2ES", "lang": "fr" },
-      128: { "id": 128, "name": "Dowdy, Emma", "cls": "2ES", "lang": "fr" },
-      129: { "id": 129, "name": "Greeneg, Linus", "cls": "2ES", "lang": "fr" },
-      130: { "id": 130, "name": "Grossartigh, Arthur", "cls": "2ES", "lang": "de" },
-      131: { "id": 131, "name": "Guintardt, Gavin", "cls": "2ES", "lang": "fr" },
-      132: { "id": 132, "name": "Herforderlichu, Jacob", "cls": "2ES", "lang": "fr" },
-      133: { "id": 133, "name": "Hilll, Sophie", "cls": "2ES", "lang": "fr" },
-      134: { "id": 134, "name": "Kremerlangi, Jason", "cls": "2ES", "lang": "fr" },
-      135: { "id": 135, "name": "Langdona, Sam", "cls": "2ES", "lang": "fr" },
-      136: { "id": 136, "name": "Manningr, Christopherus-Maxime", "cls": "2ES", "lang": "fr" },
-      137: { "id": 137, "name": "McLeanh, Paul", "cls": "2ES", "lang": "fr" },
-      138: { "id": 138, "name": "Parsonse, Penelope", "cls": "2ES", "lang": "fr" },
-      139: { "id": 139, "name": "Pooler, Nicola", "cls": "2ES", "lang": "de" },
-      140: { "id": 140, "name": "Randallw, Fiona", "cls": "2ES", "lang": "fr" },
-      141: { "id": 141, "name": "Parsonse, Penelope", "cls": "2ES", "lang": "fr" },
-      142: { "id": 142, "name": "Herforderlichu, Jacob", "cls": "2ES", "lang": "fr" },
-      143: { "id": 143, "name": "Maier, Heinz", "cls": "2ES", "lang": "fr" },
-      144: { "id": 144, "name": "Müller, Bertram", "cls": "2ES", "lang": "fr" },
-      145: { "id": 145, "name": "Gauß, Carl Friedrich", "cls": "2ES", "lang": "fr" },
-    };
+    const STUDENTS = [
+      { "id": 123, "name": "Arnoldl, Ella", "cls": "2ES", "lang": "de" },
+      { "id": 124, "name": "Bimanns, Nicholas", "cls": "2ES", "lang": "fr" },
+      { "id": 125, "name": "Chapmanx, Brandon", "cls": "2ES", "lang": "de" },
+      { "id": 126, "name": "Colemans, Carl", "cls": "2ES", "lang": "de" },
+      { "id": 127, "name": "Cornishw, Hilda", "cls": "2ES", "lang": "fr" },
+      { "id": 128, "name": "Dowdy, Emma", "cls": "2ES", "lang": "fr" },
+      { "id": 129, "name": "Greeneg, Linus", "cls": "2ES", "lang": "fr" },
+      { "id": 130, "name": "Grossartigh, Arthur", "cls": "2ES", "lang": "de" },
+      { "id": 131, "name": "Guintardt, Gavin", "cls": "2ES", "lang": "fr" },
+      { "id": 132, "name": "Herforderlichu, Jacob", "cls": "2ES", "lang": "fr" },
+      { "id": 133, "name": "Hilll, Sophie", "cls": "2ES", "lang": "fr" },
+      { "id": 134, "name": "Kremerlangi, Jason", "cls": "2ES", "lang": "fr" },
+      { "id": 135, "name": "Langdona, Sam", "cls": "2ES", "lang": "fr" },
+      { "id": 136, "name": "Manningr, Christopherus-Maxime", "cls": "2ES", "lang": "fr" },
+      { "id": 137, "name": "McLeanh, Paul", "cls": "2ES", "lang": "fr" },
+      { "id": 138, "name": "Parsonse, Penelope", "cls": "2ES", "lang": "fr" },
+      { "id": 139, "name": "Pooler, Nicola", "cls": "2ES", "lang": "de" },
+      { "id": 140, "name": "Randallw, Fiona", "cls": "2ES", "lang": "fr" },
+      { "id": 141, "name": "Parsonse, Penelope", "cls": "2ES", "lang": "fr" },
+      { "id": 142, "name": "Herforderlichu, Jacob", "cls": "2ES", "lang": "fr" },
+      { "id": 143, "name": "Maier, Heinz", "cls": "2ES", "lang": "fr" },
+      { "id": 144, "name": "Müller, Bertram", "cls": "2ES", "lang": "fr" },
+      { "id": 145, "name": "Gauß, Carl Friedrich", "cls": "2ES", "lang": "fr" },
+    ];
 
-    const NUM_STUDENTS = Object.entries(STUDENTS).length;
+    const studentMap = {};
+    STUDENTS.forEach(s => {
+      studentMap[s.id] = s;
+    });
 
     CONFIG = {
       showLastnames: true,
@@ -84,9 +87,9 @@
     }
 
     function checkButtons() {
-      $("#deleteRow").prop("disabled", (CONFIG.rows - 1) * CONFIG.columns < NUM_STUDENTS);
+      $("#deleteRow").prop("disabled", (CONFIG.rows - 1) * CONFIG.columns < STUDENTS.length);
       $("#addRow").prop("disabled", CONFIG.rows >= MAX_ROWS);
-      $("#deleteColumn").prop("disabled", CONFIG.rows * (CONFIG.columns - 1) < NUM_STUDENTS);
+      $("#deleteColumn").prop("disabled", CONFIG.rows * (CONFIG.columns - 1) < STUDENTS.length);
       $("#addColumn").prop("disabled", CONFIG.columns >= MAX_COLUMNS);
     }
 
@@ -122,7 +125,7 @@
           let seatText = "";
 
           if (seat.studentId) {
-            const student = STUDENTS[seat.studentId];
+            const student = studentMap[seat.studentId];
             const displayName = student.name.split(",")[1];
             seatText = `${displayName}<br> (${student.cls})`;
 
@@ -163,7 +166,7 @@
         $('<div>', {
           class: "seat border border-dark text-center px-1 mb-2 mr-2 align-items-center align-content-center " + (firstClickedStudentId === studentId ? "highlighted" : ""),
           id: "u_" + idx,
-          html: STUDENTS[studentId].name
+          html: studentMap[studentId].name
         }).appendTo(unseatedElem);
       }
 
@@ -207,7 +210,7 @@
     }
 
     function getUnseatedStudents() {
-      const ids = Object.keys(STUDENTS);
+      const ids = STUDENTS.map(s => s.id);
       const seated = [];
       for (let i = 0; i < CONFIG.rows; i++) {
         for (let j = 0; j < CONFIG.columns; j++) {
