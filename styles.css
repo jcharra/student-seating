@@ -7,7 +7,7 @@
 }
 
 .changed {
-  animation: justChanged 1s ease forwards;
+  animation: justChanged .5s ease forwards;
 }
 
 @keyframes justChanged {
