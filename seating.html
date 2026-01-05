@@ -16,30 +16,33 @@
   <link rel="stylesheet" href="styles.css">
   <script>
     const STUDENTS = [
-      { "id": 123, "name": "Arnoldl, Ella", "cls": "2ES", "lang": "de" },
-      { "id": 124, "name": "Bimanns, Nicholas", "cls": "2ES", "lang": "fr" },
-      { "id": 125, "name": "Chapmanx, Brandon", "cls": "2ES", "lang": "de" },
-      { "id": 126, "name": "Colemans, Carl", "cls": "2ES", "lang": "de" },
-      { "id": 127, "name": "Cornishw, Hilda", "cls": "2ES", "lang": "fr" },
-      { "id": 128, "name": "Dowdy, Emma", "cls": "2ES", "lang": "fr" },
-      { "id": 129, "name": "Greeneg, Linus", "cls": "2ES", "lang": "fr" },
-      { "id": 130, "name": "Grossartigh, Arthur", "cls": "2ES", "lang": "de" },
-      { "id": 131, "name": "Guintardt, Gavin", "cls": "2ES", "lang": "fr" },
-      { "id": 132, "name": "Herforderlichu, Jacob", "cls": "2ES", "lang": "fr" },
-      { "id": 133, "name": "Hilll, Sophie", "cls": "2ES", "lang": "fr" },
-      { "id": 134, "name": "Kremerlangi, Jason", "cls": "2ES", "lang": "fr" },
-      { "id": 135, "name": "Langdona, Sam", "cls": "2ES", "lang": "fr" },
-      { "id": 136, "name": "Manningr, Christopherus-Maxime", "cls": "2ES", "lang": "fr" },
-      { "id": 137, "name": "McLeanh, Paul", "cls": "2ES", "lang": "fr" },
-      { "id": 138, "name": "Parsonse, Penelope", "cls": "2ES", "lang": "fr" },
-      { "id": 139, "name": "Pooler, Nicola", "cls": "2ES", "lang": "de" },
-      { "id": 140, "name": "Randallw, Fiona", "cls": "2ES", "lang": "fr" },
-      { "id": 141, "name": "Parsonse, Penelope", "cls": "2ES", "lang": "fr" },
-      { "id": 142, "name": "Herforderlichu, Jacob", "cls": "2ES", "lang": "fr" },
-      { "id": 143, "name": "Maier, Heinz", "cls": "2ES", "lang": "fr" },
-      { "id": 144, "name": "Müller, Bertram", "cls": "2ES", "lang": "fr" },
-      { "id": 145, "name": "Gauß, Carl Friedrich", "cls": "2ES", "lang": "fr" },
+      { "id": 123, "name": "Arnoldl", "firstname": "Ella", "cls": "2ES", "lang": "de" },
+      { "id": 124, "name": "Arnulf", "firstname": "Ella", "cls": "2ES", "lang": "fr" },
+      { "id": 125, "name": "Chapmanx", "firstname": "Brandon", "cls": "2ES", "lang": "de" },
+      { "id": 126, "name": "Colemans", "firstname": "Carl", "cls": "2ES", "lang": "de" },
+      { "id": 127, "name": "Cornishw", "firstname": "Hilda", "cls": "2ES", "lang": "fr" },
+      { "id": 128, "name": "Dowdy", "firstname": "Emma", "cls": "2ES", "lang": "fr" },
+      { "id": 129, "name": "Unhold", "firstname": "Ella", "cls": "2ES", "lang": "fr" },
+      { "id": 130, "name": "Grossartigh", "firstname": "Arthur", "cls": "2ES", "lang": "de" },
+      { "id": 131, "name": "Guintardt", "firstname": "Gavin", "cls": "2ES", "lang": "fr" },
+      { "id": 132, "name": "Herforderlichu", "firstname": "Jacob", "cls": "2ES", "lang": "fr" },
+      { "id": 133, "name": "Hilll", "firstname": "Sophie", "cls": "2ES", "lang": "fr" },
+      { "id": 134, "name": "Kremerlangi", "firstname": "Jason", "cls": "2ES", "lang": "fr" },
+      { "id": 135, "name": "Langdona", "firstname": "Sam", "cls": "2ES", "lang": "fr" },
+      { "id": 136, "name": "Manningr", "firstname": "Christopherus-Maxime", "cls": "2ES", "lang": "fr" },
+      { "id": 137, "name": "McLeanh", "firstname": "Paul", "cls": "2ES", "lang": "fr" },
+      { "id": 138, "name": "Perez", "firstname": "Penelope", "cls": "2ES", "lang": "fr" },
+      { "id": 139, "name": "Pooler", "firstname": "Nicola", "cls": "2ES", "lang": "de" },
+      { "id": 140, "name": "Randallw", "firstname": "Fiona", "cls": "2ES", "lang": "fr" },
+      { "id": 141, "name": "Parsonse", "firstname": "Penelope", "cls": "2ES", "lang": "fr" },
+      { "id": 142, "name": "Hausmann", "firstname": "Jacob", "cls": "2ES", "lang": "fr" },
+      { "id": 143, "name": "Maier", "firstname": "Heinz", "cls": "2ES", "lang": "fr" },
+      { "id": 144, "name": "Müller", "firstname": "Bertram", "cls": "2ES", "lang": "fr" },
+      { "id": 145, "name": "Gauß", "firstname": "Carl Friedrich", "cls": "2ES", "lang": "fr" },
     ];
+
+    addShortnames();
+    console.log(STUDENTS.map(s => s.shortname));
 
     const studentMap = {};
     STUDENTS.forEach(s => {
@@ -49,12 +52,12 @@
     CONFIG = {
       showLastnames: true,
       teachersView: true,
-      rows: 3,
+      rows: Math.ceil(STUDENTS.length / 8),
       columns: 8
     };
 
     const MAX_ROWS = 6;
-    const MAX_COLUMNS = 10;
+    const MAX_COLUMNS = 12;
 
     let grid = [];
     let gaps = [];
@@ -65,6 +68,28 @@
     function toggleView() {
       CONFIG.teachersView = !CONFIG.teachersView;
       renderGrid();
+    }
+
+    function addShortnames() {
+      // set fullnames for comparison
+      for (const s of STUDENTS) {
+        s.fullname = s.firstname + " " + s.name;
+      }
+
+      for (const s of STUDENTS) {
+        for (let i = s.firstname.length; i < s.fullname.length; i++) {
+          // check incrementally longer names for uniqueness
+          const candidate = s.fullname.slice(0, i);
+          if (STUDENTS.filter(s2 => s.id != s2.id && s2.fullname.startsWith(candidate)).length === 0) {
+            s.shortname = i > s.firstname.length ? candidate + "." : candidate.trim();
+            break;
+          }
+        }
+
+        if (!s.shortname) {
+          s.shortname = s.fullname;
+        }
+      }
     }
 
     function rebuildGrid(keepSeatedStudents) {
@@ -126,8 +151,7 @@
 
           if (seat.studentId) {
             const student = studentMap[seat.studentId];
-            const displayName = student.name.split(",")[1];
-            seatText = `${displayName}<br> (${student.cls})`;
+            seatText = `${student.shortname}<br> (${student.cls})`;
 
             if (seat.studentId === firstClickedStudentId) {
               cssClasses += " highlighted";
@@ -166,7 +190,7 @@
         $('<div>', {
           class: "seat border border-dark text-center px-1 mb-2 mr-2 align-items-center align-content-center " + (firstClickedStudentId === studentId ? "highlighted" : ""),
           id: "u_" + idx,
-          html: studentMap[studentId].name
+          html: studentMap[studentId].shortname
         }).appendTo(unseatedElem);
       }
 
