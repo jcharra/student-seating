@@ -179,20 +179,29 @@
 
         container.append(rowElem);
       }
-
-      // reset to empty list
-      changed = [];
-
+      
       unseated = getUnseatedStudents();
+      unseated.sort((a, b) => studentMap[a].shortname.localeCompare(studentMap[b].shortname));
       const unseatedElem = $("#unseated");
       unseatedElem.empty();
       for (const [idx, studentId] of unseated.entries()) {
+        let cssClasses = "seat border border-dark text-center px-1 mb-2 mr-2 align-items-center align-content-center";
+        if (firstClickedStudentId === studentId) {
+          cssClasses += " highlighted";
+        }
+        if (changed.indexOf(studentId) > -1) {
+          cssClasses += " changed";
+        }
+        
         $('<div>', {
-          class: "seat border border-dark text-center px-1 mb-2 mr-2 align-items-center align-content-center " + (firstClickedStudentId === studentId ? "highlighted" : ""),
+          class: cssClasses,
           id: "u_" + idx,
           html: studentMap[studentId].shortname
         }).appendTo(unseatedElem);
       }
+
+      // reset to empty list
+      changed = [];
 
       $(".seat").off("click");
       $(".seat").on("click", (e) => onSelect(e.target.id));
@@ -257,46 +266,56 @@
     }
 
     function onSelect(gridId) {
-      let [cell, latestClickStudentId] = [null, null];
+      let [gridCell, lastClickedStudentId] = [null, null];
 
       if (gridId.startsWith("u")) {
         const idx = gridId.split("_")[1];
-        latestClickStudentId = unseated[idx];
+        lastClickedStudentId = unseated[idx];
       } else {
         const [row, col] = gridId.split("_");
-        cell = grid[row][col];
-        latestClickStudentId = cell.studentId;
+        gridCell = grid[row][col];
+        lastClickedStudentId = gridCell.studentId;
       }
 
+      // Case 1: First click => select student and return
       if (!firstClickedStudentId) {
-        if (latestClickStudentId) {
-          firstClickedStudentId = latestClickStudentId;
+        firstClickedStudentId = lastClickedStudentId;
+        renderGrid();
+        return;
+      }
+
+      // Case 2: Second click after selection. Swap/Move selected student.
+      const originCell = findCellWithStudentId(firstClickedStudentId);
+      if (lastClickedStudentId) {
+        // Two clicks on same student => move to bench
+        if (lastClickedStudentId === firstClickedStudentId) {
+          if (originCell) {
+            originCell.studentId = null;
+            changed = [lastClickedStudentId];
+          }
         } else {
-          console.log("Empty cell not selectable on first click");
+          if (originCell && gridCell) {
+            // Swap between two grid cells
+            originCell.studentId = gridCell.studentId;
+            gridCell.studentId = firstClickedStudentId;
+          } else if (originCell) {
+            // Swap from grid to bench
+            originCell.studentId = lastClickedStudentId;
+          } else {
+            // Swap from bench to grid
+            gridCell.studentId = firstClickedStudentId;
+          }
+          changed = [lastClickedStudentId, firstClickedStudentId];
         }
       } else {
-        const originCell = findCellWithStudentId(firstClickedStudentId);
-        if (latestClickStudentId) {
-          if (originCell) {
-            const swapStudentId = originCell.studentId;
-            originCell.studentId = cell.studentId;
-            cell.studentId = swapStudentId;
-          } else {
-            cell.studentId = firstClickedStudentId;
-          }
-          changed = [latestClickStudentId, firstClickedStudentId];
-        } else {
-          if (originCell) {
-            cell.studentId = originCell.studentId;
-            originCell.studentId = null;
-          } else {
-            cell.studentId = firstClickedStudentId;
-          }
-          changed = [firstClickedStudentId];
+        if (originCell) {
+          originCell.studentId = null;
         }
-        firstClickedStudentId = null;
+        gridCell.studentId = firstClickedStudentId;
+        changed = [firstClickedStudentId];
       }
-      renderGrid();
+
+      firstClickedStudentId = null;
     }
 
     function clearGrid() {
