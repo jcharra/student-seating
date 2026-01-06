@@ -1,7 +1,7 @@
 .seat {
   color: black;
   width: 100px;
-  height: 100px;
+  height: 80px;
   cursor: pointer;
   font-size: 15px;
 }
@@ -31,7 +31,7 @@
 
 .gap {
   width: 10px;
-  height: 100px;
+  height: 80px;
 }
 
 .gap:hover {
