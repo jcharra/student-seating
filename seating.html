@@ -42,8 +42,7 @@
     ];
 
     addShortnames();
-    console.log(STUDENTS.map(s => s.shortname));
-
+    
     const studentMap = {};
     STUDENTS.forEach(s => {
       studentMap[s.id] = s;
@@ -298,14 +297,18 @@
             // Swap between two grid cells
             originCell.studentId = gridCell.studentId;
             gridCell.studentId = firstClickedStudentId;
+            changed = [lastClickedStudentId, firstClickedStudentId];
           } else if (originCell) {
             // Swap from grid to bench
             originCell.studentId = lastClickedStudentId;
-          } else {
+            changed = [lastClickedStudentId, firstClickedStudentId];
+          } else if (gridCell) {
             // Swap from bench to grid
             gridCell.studentId = firstClickedStudentId;
-          }
-          changed = [lastClickedStudentId, firstClickedStudentId];
+            changed = [lastClickedStudentId, firstClickedStudentId];
+          } else {
+            console.log("Invalid swap");
+          }          
         }
       } else {
         if (originCell) {
@@ -316,6 +319,7 @@
       }
 
       firstClickedStudentId = null;
+      renderGrid();
     }
 
     function clearGrid() {
