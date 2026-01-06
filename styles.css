@@ -7,24 +7,24 @@
 }
 
 .changed {
-  animation: justChanged .5s ease forwards;
+  animation: justChanged 1s ease forwards;
 }
 
 @keyframes justChanged {
   from {
-    font-size: 0;
+    opacity: 0.0;
     background-color: lightblue;
   }
 
   to {
-    font-size: 15px;
+    opacity: 1.0;
     background-color: white;
     color: black;
   }
 }
 
 .highlighted {
-  background-color: rgb(125, 193, 118);
+  background-color: lightblue;
   color: white;
   font-weight: bold;
 }
