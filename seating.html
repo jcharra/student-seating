@@ -42,11 +42,19 @@
     ];
 
     addShortnames();
-    
+
     const studentMap = {};
     STUDENTS.forEach(s => {
       studentMap[s.id] = s;
     });
+
+    const FLAGS = {
+      de: "🇩🇪",
+      fr: "🇫🇷",
+      en: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+      us: "🇺🇸",
+      es: "🇪🇸"
+    };
 
     CONFIG = {
       showLastnames: true,
@@ -66,17 +74,34 @@
 
     function toggleView() {
       CONFIG.teachersView = !CONFIG.teachersView;
+
+      if (CONFIG.teachersView) {
+        $("#gridModification, #distribution").removeClass("d-none").addClass("d-flex");
+        $("#toggleViewButton").text("Zur Schüleransicht wechseln");
+      } else {
+        $("#gridModification, #distribution").removeClass("d-flex").addClass("d-none");
+        $("#toggleViewButton").text("Zur Lehreransicht wechseln");
+      }
+
       renderGrid();
     }
 
     function addShortnames() {
       // set fullnames for comparison
       for (const s of STUDENTS) {
-        s.fullname = s.firstname + " " + s.name;
+        let fname = s.firstname;
+        if (s.firstname.length > 10) {
+          if (s.firstname.indexOf("-") > -1) {
+            fname = s.firstname.split("-").map(c => c.length > 10 ? c.slice(0, 8) + "." : c).join(" ");
+          } else {
+            fname = s.firstname.slice(0, 8) + ".";
+          }
+        }
+        s.fullname = fname + " " + s.name;
       }
 
       for (const s of STUDENTS) {
-        for (let i = s.firstname.length; i < s.fullname.length; i++) {
+        for (let i = s.fullname.lastIndexOf(" "); i < s.fullname.length; i++) {
           // check incrementally longer names for uniqueness
           const candidate = s.fullname.slice(0, i);
           if (STUDENTS.filter(s2 => s.id != s2.id && s2.fullname.startsWith(candidate)).length === 0) {
@@ -117,6 +142,12 @@
       $("#addColumn").prop("disabled", CONFIG.columns >= MAX_COLUMNS);
     }
 
+    function renderStudent(sid) {
+      if (!sid) return "";
+      const s = studentMap[sid];
+      return `${s.shortname} <br>${s.cls || ""} ${s.lang ? FLAGS[s.lang] : ""}`;
+    }
+
     function renderGrid() {
       const classRoom = $("#classroom");
       classRoom.empty();
@@ -129,7 +160,7 @@
 
       // Teacher node
       const $el = $('<div>', {
-        class: 'justify-center border border-dark w-25 text-center py-3 my-2',
+        class: 'justify-center border border-dark w-25 text-center py-3 my-2 teacher',
         text: 'Herr Charra',
         id: 'teacher'
       });
@@ -150,7 +181,6 @@
 
           if (seat.studentId) {
             const student = studentMap[seat.studentId];
-            seatText = `${student.shortname}<br> (${student.cls})`;
 
             if (seat.studentId === firstClickedStudentId) {
               cssClasses += " highlighted";
@@ -164,7 +194,7 @@
           $('<div>', {
             class: cssClasses,
             id: seat.id,
-            html: seatText
+            html: renderStudent(seat.studentId)
           }).appendTo(rowElem);
 
           if (colIdx < row.length - 1) {
@@ -178,7 +208,7 @@
 
         container.append(rowElem);
       }
-      
+
       unseated = getUnseatedStudents();
       unseated.sort((a, b) => studentMap[a].shortname.localeCompare(studentMap[b].shortname));
       const unseatedElem = $("#unseated");
@@ -191,16 +221,18 @@
         if (changed.indexOf(studentId) > -1) {
           cssClasses += " changed";
         }
-        
+
         $('<div>', {
           class: cssClasses,
           id: "u_" + idx,
-          html: studentMap[studentId].shortname
+          html: renderStudent(studentId)
         }).appendTo(unseatedElem);
       }
 
       // reset to empty list
       changed = [];
+
+      $("#clearButton").prop("disabled", unseated.length === 0);
 
       $(".seat").off("click");
       $(".seat").on("click", (e) => onSelect(e.target.id));
@@ -308,7 +340,7 @@
             changed = [lastClickedStudentId, firstClickedStudentId];
           } else {
             console.log("Invalid swap");
-          }          
+          }
         }
       } else {
         if (originCell) {
@@ -323,7 +355,9 @@
     }
 
     function clearGrid() {
-      rebuildGrid(false);
+      if (getUnseatedStudents().length < STUDENTS.length && confirm("Alle SuS aus der Sitzordnung entfernen?")) {
+        rebuildGrid(false);
+      }
     }
 
     function init() {
@@ -334,7 +368,7 @@
 </head>
 
 <body onload="init()">
-  <div class="d-flex justify-content-center w-100 my-2">
+  <div id="gridModification" class="d-flex justify-content-center w-100 my-2">
     <button id="addRow" class="btn btn-primary mx-2 my-1" onclick="changeGrid(1, 0)">Reihe hinzufügen</button>
     <button id="deleteRow" class="btn btn-primary mx-2 my-1" onclick="changeGrid(-1, 0)">Reihe entfernen</button>
     <button id="addColumn" class="btn btn-primary mx-2 my-1" onclick="changeGrid(0, 1)">Spalte hinzufügen</button>
@@ -344,9 +378,12 @@
   <div id="classroom">
   </div>
 
-  <div>
-    <button class="btn btn-primary mx-2 my-1" onclick="toggleView()">Ansicht wechseln</button>
-    <button class="btn btn-primary mx-2 my-1" onclick="fillUnseatedStudents()">Zufällige Verteilung</button>
+  <button id="toggleViewButton" class="btn btn-success mx-2 mb-1" onclick="toggleView()">Zur Schüleransicht
+    wechseln</button>
+
+  <div id="distribution">
+    <button id="clearButton" class="btn btn-primary mx-2 my-1" onclick="fillUnseatedStudents()">Verbleibende SuS
+      zufällig verteilen</button>
     <button class="btn btn-warning mx-2 my-1" onclick="clearGrid()">Alle Plätze leeren</button>
   </div>
 
