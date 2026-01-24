@@ -137,7 +137,7 @@
     function checkButtons() {
       const numOfSeatsWithoutLastRow = CONFIG.rows.slice(0, CONFIG.rows.length - 1).reduce((acc, value) => acc + value, 0);
       $("#deleteRow").prop("disabled", numOfSeatsWithoutLastRow < STUDENTS.length);
-      $("#addRow").prop("disabled", CONFIG.rows.length >= MAX_ROWS);      
+      $("#addRow").prop("disabled", CONFIG.rows.length >= MAX_ROWS);
     }
 
     function renderStudent(sid) {
@@ -172,40 +172,43 @@
           class: "m-3 d-flex align-items-start " + rowDirectionCls,
         });
 
-        addRemoveButtons = generateAddRemoveButtons(rowIdx);
-        addRemoveButtons.appendTo(rowElem );
-
+        
         for (let colIdx = 0; colIdx < row.length; colIdx++) {
           const seat = row[colIdx];
           let cssClasses = "seat border border-dark text-center px-1 d-inline-block align-items-center align-content-center";
           let seatText = "";
-
+          
           if (seat.studentId) {
             const student = studentMap[seat.studentId];
-
+            
             if (seat.studentId === firstClickedStudentId) {
               cssClasses += " highlighted";
             }
-
+            
             if (changed.indexOf(seat.studentId) > -1) {
               cssClasses += " changed";
             }
           }
-
+          
           $('<div>', {
             class: cssClasses,
             id: seat.id,
             html: renderStudent(seat.studentId)
           }).appendTo(rowElem);
-
+          
           if (colIdx < row.length - 1) {
             $('<div>', {
               class: gaps.indexOf(seat.id) === -1 ? "gap" : "gap gap_active"
             })
-              .on("click", () => toggleGap(seat.id))
-              .appendTo(rowElem);
+            .on("click", () => toggleGap(seat.id))
+            .appendTo(rowElem);
           }
-        }        
+        }
+        
+        if (CONFIG.teachersView) {
+          addRemoveButtons = generateAddRemoveButtons(rowIdx);
+          addRemoveButtons.appendTo(rowElem);
+        }
 
         container.append(rowElem);
       }
@@ -238,23 +241,28 @@
       $(".seat").off("click");
       $(".seat").on("click", (e) => onSelect(e.target.id));
       $(".addButton, .removeButton").off("click");
-      $(".addButton, .removeButton").on("click", (e) => onModify(e.target.id));      
+      $(".addButton, .removeButton").on("click", (e) => onModify(e.target.id));
     }
 
-    function generateAddRemoveButtons(rowIndex) {
+    function generateAddRemoveButtons(rowIndex, isStart) {
+      let html;
+      if (isStart) {
+        html = `<div class='addButton' id='prepend_${rowIndex}'>+</div><div class='removeButton' id='shift_${rowIndex}'>-</div>`;
+      } else {
+        html = `<div class='addButton' id='push_${rowIndex}'>+</div><div class='removeButton' id='pop_${rowIndex}'>-</div>`
+      }
+
       return $('<div>', {
         class: "addRemoveButtons",
-        html: `<div class='addButton' id='add_${rowIndex}'>+</div><div class='removeButton' id='remove_${rowIndex}'>-</div>`
+        html
       });
     }
 
     function onModify(elemId) {
-      console.log("Elem " + elemId);
       const [action, rowIdx] = elemId.split("_");
-      console.log("Action " + action + " on " + rowIdx);
-      if (action === "add") {
+      if (action === "prepend" || action === "push") {
         CONFIG.rows[rowIdx]++;
-      } else if (action === "remove") {
+      } else if (action === "shift" || action === "pop") {
         CONFIG.rows[rowIdx]--;
       } else {
         console.error("Invalid command for elemId " + elemId);
@@ -294,7 +302,7 @@
     function changeRows(deltaRows) {
       if (deltaRows === 1 && CONFIG.rows.length < MAX_ROWS) {
         // Copy last element to end
-        CONFIG.rows.push(CONFIG.rows[CONFIG.rows.length-1]);
+        CONFIG.rows.push(CONFIG.rows[CONFIG.rows.length - 1]);
       } else {
         CONFIG.rows.pop();
       }

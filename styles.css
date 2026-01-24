@@ -56,16 +56,26 @@
   font-size: 14pt;
   font-weight: 900;
   margin: 5px 15px;
-  cursor: pointer;
+  cursor: pointer;  
 }
 
 
 .removeButton {
-  background-color: lightpink;
-  color: red; 
+  border: 1px solid red;
+  color: red;
 }
 
 .addButton {
+  border: 1px solid green;
+  color: green;
+}
+
+.removeButton:hover {
+  background-color: lightcoral;
+  color: white;
+}
+
+.addButton:hover {
   background-color: lightgreen;
-  color: green; 
+  color: white;
 }
