@@ -46,3 +46,26 @@
 .teacher {
   background-color: beige;
 }
+
+.addRemoveButtons div {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  text-align: center;
+  align-content: center;
+  font-size: 14pt;
+  font-weight: 900;
+  margin: 5px 15px;
+  cursor: pointer;
+}
+
+
+.removeButton {
+  background-color: lightpink;
+  color: red; 
+}
+
+.addButton {
+  background-color: lightgreen;
+  color: green; 
+}

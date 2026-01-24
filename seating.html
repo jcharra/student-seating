@@ -59,8 +59,7 @@
     CONFIG = {
       showLastnames: true,
       teachersView: true,
-      rows: Math.ceil(STUDENTS.length / 8),
-      columns: 8
+      rows: Array(Math.ceil(STUDENTS.length / 8)).fill(8)
     };
 
     const MAX_ROWS = 6;
@@ -118,9 +117,9 @@
 
     function rebuildGrid(keepSeatedStudents) {
       const newGrid = [];
-      for (let i = 0; i < CONFIG.rows; i++) {
+      for (let i = 0; i < CONFIG.rows.length; i++) {
         const row = [];
-        for (let j = 0; j < CONFIG.columns; j++) {
+        for (let j = 0; j < CONFIG.rows[i]; j++) {
           const elemId = i + "_" + j;
           row.push({
             id: elemId,
@@ -136,10 +135,9 @@
     }
 
     function checkButtons() {
-      $("#deleteRow").prop("disabled", (CONFIG.rows - 1) * CONFIG.columns < STUDENTS.length);
-      $("#addRow").prop("disabled", CONFIG.rows >= MAX_ROWS);
-      $("#deleteColumn").prop("disabled", CONFIG.rows * (CONFIG.columns - 1) < STUDENTS.length);
-      $("#addColumn").prop("disabled", CONFIG.columns >= MAX_COLUMNS);
+      const numOfSeatsWithoutLastRow = CONFIG.rows.slice(0, CONFIG.rows.length - 1).reduce((acc, value) => acc + value, 0);
+      $("#deleteRow").prop("disabled", numOfSeatsWithoutLastRow < STUDENTS.length);
+      $("#addRow").prop("disabled", CONFIG.rows.length >= MAX_ROWS);      
     }
 
     function renderStudent(sid) {
@@ -174,6 +172,9 @@
           class: "m-3 d-flex align-items-start " + rowDirectionCls,
         });
 
+        addRemoveButtons = generateAddRemoveButtons(rowIdx);
+        addRemoveButtons.appendTo(rowElem );
+
         for (let colIdx = 0; colIdx < row.length; colIdx++) {
           const seat = row[colIdx];
           let cssClasses = "seat border border-dark text-center px-1 d-inline-block align-items-center align-content-center";
@@ -204,7 +205,7 @@
               .on("click", () => toggleGap(seat.id))
               .appendTo(rowElem);
           }
-        };
+        }        
 
         container.append(rowElem);
       }
@@ -236,6 +237,29 @@
 
       $(".seat").off("click");
       $(".seat").on("click", (e) => onSelect(e.target.id));
+      $(".addButton, .removeButton").off("click");
+      $(".addButton, .removeButton").on("click", (e) => onModify(e.target.id));      
+    }
+
+    function generateAddRemoveButtons(rowIndex) {
+      return $('<div>', {
+        class: "addRemoveButtons",
+        html: `<div class='addButton' id='add_${rowIndex}'>+</div><div class='removeButton' id='remove_${rowIndex}'>-</div>`
+      });
+    }
+
+    function onModify(elemId) {
+      console.log("Elem " + elemId);
+      const [action, rowIdx] = elemId.split("_");
+      console.log("Action " + action + " on " + rowIdx);
+      if (action === "add") {
+        CONFIG.rows[rowIdx]++;
+      } else if (action === "remove") {
+        CONFIG.rows[rowIdx]--;
+      } else {
+        console.error("Invalid command for elemId " + elemId);
+      }
+      rebuildGrid(true);
     }
 
     function toggleGap(seatId) {
@@ -252,8 +276,8 @@
       for (const id of unseated) {
         let attempts = 0;
         while (attempts < 10000) {
-          const randRow = Math.floor(Math.random() * CONFIG.rows);
-          const randCol = Math.floor(Math.random() * CONFIG.columns);
+          const randRow = Math.floor(Math.random() * CONFIG.rows.length);
+          const randCol = Math.floor(Math.random() * CONFIG.rows[randRow]);
 
           if (!grid[randRow][randCol].studentId) {
             grid[randRow][randCol].studentId = id;
@@ -267,17 +291,21 @@
       renderGrid();
     }
 
-    function changeGrid(deltaRows, deltaCols) {
-      CONFIG.rows = Math.min(MAX_ROWS, Math.max(1, CONFIG.rows + deltaRows));
-      CONFIG.columns = Math.min(MAX_COLUMNS, Math.max(3, CONFIG.columns + deltaCols));
+    function changeRows(deltaRows) {
+      if (deltaRows === 1 && CONFIG.rows.length < MAX_ROWS) {
+        // Copy last element to end
+        CONFIG.rows.push(CONFIG.rows[CONFIG.rows.length-1]);
+      } else {
+        CONFIG.rows.pop();
+      }
       rebuildGrid(true);
     }
 
     function getUnseatedStudents() {
       const ids = STUDENTS.map(s => s.id);
       const seated = [];
-      for (let i = 0; i < CONFIG.rows; i++) {
-        for (let j = 0; j < CONFIG.columns; j++) {
+      for (let i = 0; i < CONFIG.rows.length; i++) {
+        for (let j = 0; j < CONFIG.rows[i]; j++) {
           if (grid[i][j].studentId) {
             seated.push(grid[i][j].studentId);
           }
@@ -287,8 +315,8 @@
     }
 
     function findCellWithStudentId(sid) {
-      for (let i = 0; i < CONFIG.rows; i++) {
-        for (let j = 0; j < CONFIG.columns; j++) {
+      for (let i = 0; i < CONFIG.rows.length; i++) {
+        for (let j = 0; j < CONFIG.rows[i]; j++) {
           if (grid[i][j].studentId === sid) {
             return grid[i][j];
           }
@@ -369,10 +397,8 @@
 
 <body onload="init()">
   <div id="gridModification" class="d-flex justify-content-center w-100 my-2">
-    <button id="addRow" class="btn btn-primary mx-2 my-1" onclick="changeGrid(1, 0)">Reihe hinzufügen</button>
-    <button id="deleteRow" class="btn btn-primary mx-2 my-1" onclick="changeGrid(-1, 0)">Reihe entfernen</button>
-    <button id="addColumn" class="btn btn-primary mx-2 my-1" onclick="changeGrid(0, 1)">Spalte hinzufügen</button>
-    <button id="deleteColumn" class="btn btn-primary mx-2 my-1" onclick="changeGrid(0, -1)">Spalte entfernen</button>
+    <button id="addRow" class="btn btn-primary mx-2 my-1" onclick="changeRows(1)">Reihe hinzufügen</button>
+    <button id="deleteRow" class="btn btn-primary mx-2 my-1" onclick="changeRows(-1)">Reihe entfernen</button>
   </div>
 
   <div id="classroom">
