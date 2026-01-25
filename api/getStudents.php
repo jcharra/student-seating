@@ -9,6 +9,7 @@ if (!isset($_GET["refId"])) {
 
 $refId = $_GET["refId"];
 
+// static dummy data
 $students = [
   ["id" => 123, "name" => "Arnoldl", "firstname" => "Ella", "cls" => "2ES", "lang" => "de"],
   ["id" => 124, "name" => "Arnulf", "firstname" => "Ella", "cls" => "2ES", "lang" => "fr"],

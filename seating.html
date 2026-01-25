@@ -12,40 +12,13 @@
     integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
     crossorigin="anonymous"></script>
   <link rel="stylesheet" href="styles.css">
+  <script src="config.js"></script>
   <script>
-    const STUDENTS = [
-      { "id": 123, "name": "Arnoldl", "firstname": "Ella", "cls": "2ES", "lang": "de" },
-      { "id": 124, "name": "Arnulf", "firstname": "Ella", "cls": "2ES", "lang": "fr" },
-      { "id": 125, "name": "Chapmanx", "firstname": "Brandon", "cls": "2ES", "lang": "de" },
-      { "id": 126, "name": "Colemans", "firstname": "Carl", "cls": "2ES", "lang": "de" },
-      { "id": 127, "name": "Cornishw", "firstname": "Hilda", "cls": "2ES", "lang": "fr" },
-      { "id": 128, "name": "Dowdy", "firstname": "Emma", "cls": "2ES", "lang": "fr" },
-      { "id": 129, "name": "Unhold", "firstname": "Ella", "cls": "2ES", "lang": "fr" },
-      { "id": 130, "name": "Grossartigh", "firstname": "Arthur", "cls": "2ES", "lang": "de" },
-      { "id": 131, "name": "Guintardt", "firstname": "Gavin", "cls": "2ES", "lang": "fr" },
-      { "id": 132, "name": "Herforderlichu", "firstname": "Jacob", "cls": "2ES", "lang": "fr" },
-      { "id": 133, "name": "Hilll", "firstname": "Sophie", "cls": "2ES", "lang": "fr" },
-      { "id": 134, "name": "Kremerlangi", "firstname": "Jason", "cls": "2ES", "lang": "fr" },
-      { "id": 135, "name": "Langdona", "firstname": "Sam", "cls": "2ES", "lang": "fr" },
-      { "id": 136, "name": "Manningr", "firstname": "Christopherus-Maxime", "cls": "2ES", "lang": "fr" },
-      { "id": 137, "name": "McLeanh", "firstname": "Paul", "cls": "2ES", "lang": "fr" },
-      { "id": 138, "name": "Perez", "firstname": "Penelope", "cls": "2ES", "lang": "fr" },
-      { "id": 139, "name": "Pooler", "firstname": "Nicola", "cls": "2ES", "lang": "de" },
-      { "id": 140, "name": "Randallw", "firstname": "Fiona", "cls": "2ES", "lang": "fr" },
-      { "id": 141, "name": "Parsonse", "firstname": "Penelope", "cls": "2ES", "lang": "fr" },
-      { "id": 142, "name": "Hausmann", "firstname": "Jacob", "cls": "2ES", "lang": "fr" },
-      { "id": 143, "name": "Maier", "firstname": "Heinz", "cls": "2ES", "lang": "fr" },
-      { "id": 144, "name": "Müller", "firstname": "Bertram", "cls": "2ES", "lang": "fr" },
-      { "id": 145, "name": "Gauß", "firstname": "Carl Friedrich", "cls": "2ES", "lang": "fr" },
-    ];
-
-    addShortnames();
-
+    let students = [];
     const studentMap = {};
-    STUDENTS.forEach(s => {
-      studentMap[s.id] = s;
-    });
 
+    const MAX_ROWS = 6;
+    const MAX_COLUMNS = 12;
     const FLAGS = {
       de: "🇩🇪",
       fr: "🇫🇷",
@@ -53,26 +26,33 @@
       us: "🇺🇸",
       es: "🇪🇸"
     };
-
-    CONFIG = {
-      showLastnames: true,
-      teachersView: true,
-      rows: Array(Math.ceil(STUDENTS.length / 8)).fill(8)
-    };
-
-    const MAX_ROWS = 6;
-    const MAX_COLUMNS = 12;
+    let seatsInRow = [];
 
     let grid = [];
     let gaps = [];
     let changed = [];
     let unseated = [];
     let firstClickedStudentId = null;
+    let teachersView = true;
+    
+    function init() {
+      $.get(API.getStudents, (data) => {
+         students = data;
+         addShortnames();
+         students.forEach(s => {
+           studentMap[s.id] = s;
+         });
+         seatsInRow = Array(Math.ceil(students.length / 8)).fill(8);
+         rebuildGrid(false);
+      });
+
+      $('.toast').toast({ delay: 1000 });
+    }
 
     function toggleView() {
-      CONFIG.teachersView = !CONFIG.teachersView;
+      teachersView = !teachersView;
 
-      if (CONFIG.teachersView) {
+      if (teachersView) {
         $("#gridModification, #distribution").removeClass("d-none").addClass("d-flex");
         $("#toggleViewButton").text("Zur Schüleransicht wechseln");
       } else {
@@ -85,7 +65,7 @@
 
     function addShortnames() {
       // set fullnames for comparison
-      for (const s of STUDENTS) {
+      for (const s of students) {
         let fname = s.firstname;
         if (s.firstname.length > 10) {
           if (s.firstname.indexOf("-") > -1) {
@@ -97,11 +77,11 @@
         s.fullname = fname + " " + s.name;
       }
 
-      for (const s of STUDENTS) {
+      for (const s of students) {
         for (let i = s.fullname.lastIndexOf(" "); i < s.fullname.length; i++) {
           // check incrementally longer names for uniqueness
           const candidate = s.fullname.slice(0, i);
-          if (STUDENTS.filter(s2 => s.id != s2.id && s2.fullname.startsWith(candidate)).length === 0) {
+          if (students.filter(s2 => s.id != s2.id && s2.fullname.startsWith(candidate)).length === 0) {
             s.shortname = i > s.firstname.length ? candidate + "." : candidate.trim();
             break;
           }
@@ -115,9 +95,9 @@
 
     function rebuildGrid(keepSeatedStudents) {
       const newGrid = [];
-      for (let i = 0; i < CONFIG.rows.length; i++) {
+      for (let i = 0; i < seatsInRow.length; i++) {
         const row = [];
-        for (let j = 0; j < CONFIG.rows[i]; j++) {
+        for (let j = 0; j < seatsInRow[i]; j++) {
           const elemId = i + "_" + j;
           row.push({
             id: elemId,
@@ -133,9 +113,9 @@
     }
 
     function checkButtons() {
-      const numOfSeatsWithoutLastRow = CONFIG.rows.slice(0, CONFIG.rows.length - 1).reduce((acc, value) => acc + value, 0);
-      $("#deleteRow").prop("disabled", numOfSeatsWithoutLastRow < STUDENTS.length);
-      $("#addRow").prop("disabled", CONFIG.rows.length >= MAX_ROWS);
+      const numOfSeatsWithoutLastRow = seatsInRow.slice(0, seatsInRow.length - 1).reduce((acc, value) => acc + value, 0);
+      $("#deleteRow").prop("disabled", numOfSeatsWithoutLastRow < students.length);
+      $("#addRow").prop("disabled", seatsInRow.length >= MAX_ROWS);
     }
 
     function renderStudent(sid) {
@@ -148,7 +128,7 @@
       const classRoom = $("#classroom");
       classRoom.empty();
 
-      const directionCls = CONFIG.teachersView ? "flex-column-reverse" : "flex-column";
+      const directionCls = teachersView ? "flex-column-reverse" : "flex-column";
       const container = $("<div>", {
         class: `d-flex justify-center align-content-center align-items-center m-5 ${directionCls}`
       });
@@ -165,7 +145,7 @@
       // Grid nodes
       for (let rowIdx = 0; rowIdx < grid.length; rowIdx++) {
         const row = grid[rowIdx];
-        const rowDirectionCls = CONFIG.teachersView ? "flex-row-reverse" : "flex-row";
+        const rowDirectionCls = teachersView ? "flex-row-reverse" : "flex-row";
         let rowElem = $('<div>', {
           class: "m-3 d-flex align-items-start " + rowDirectionCls,
         });
@@ -203,7 +183,7 @@
           }
         }
 
-        if (CONFIG.teachersView) {
+        if (teachersView) {
           addRemoveButtons = generateAddRemoveButtons(rowIdx);
           addRemoveButtons.appendTo(rowElem);
         }
@@ -259,9 +239,9 @@
     function onModify(elemId) {
       const [action, rowIdx] = elemId.split("_");
       if (action === "prepend" || action === "push") {
-        CONFIG.rows[rowIdx]++;
+        seatsInRow[rowIdx]++;
       } else if (action === "shift" || action === "pop") {
-        CONFIG.rows[rowIdx]--;
+        seatsInRow[rowIdx]--;
       } else {
         console.error("Invalid command for elemId " + elemId);
       }
@@ -282,8 +262,8 @@
       for (const id of unseated) {
         let attempts = 0;
         while (attempts < 10000) {
-          const randRow = Math.floor(Math.random() * CONFIG.rows.length);
-          const randCol = Math.floor(Math.random() * CONFIG.rows[randRow]);
+          const randRow = Math.floor(Math.random() * seatsInRow.length);
+          const randCol = Math.floor(Math.random() * seatsInRow[randRow]);
 
           if (!grid[randRow][randCol].studentId) {
             grid[randRow][randCol].studentId = id;
@@ -298,20 +278,20 @@
     }
 
     function changeRows(deltaRows) {
-      if (deltaRows === 1 && CONFIG.rows.length < MAX_ROWS) {
+      if (deltaRows === 1 && seatsInRow.length < MAX_ROWS) {
         // Copy last element to end
-        CONFIG.rows.push(CONFIG.rows[CONFIG.rows.length - 1]);
+        seatsInRow.push(seatsInRow[seatsInRow.length - 1]);
       } else {
-        CONFIG.rows.pop();
+        seatsInRow.pop();
       }
       rebuildGrid(true);
     }
 
     function getUnseatedStudents() {
-      const ids = STUDENTS.map(s => s.id);
+      const ids = students.map(s => s.id);
       const seated = [];
-      for (let i = 0; i < CONFIG.rows.length; i++) {
-        for (let j = 0; j < CONFIG.rows[i]; j++) {
+      for (let i = 0; i < seatsInRow.length; i++) {
+        for (let j = 0; j < seatsInRow[i]; j++) {
           if (grid[i][j].studentId) {
             seated.push(grid[i][j].studentId);
           }
@@ -321,8 +301,8 @@
     }
 
     function findCellWithStudentId(sid) {
-      for (let i = 0; i < CONFIG.rows.length; i++) {
-        for (let j = 0; j < CONFIG.rows[i]; j++) {
+      for (let i = 0; i < seatsInRow.length; i++) {
+        for (let j = 0; j < seatsInRow[i]; j++) {
           if (grid[i][j].studentId === sid) {
             return grid[i][j];
           }
@@ -390,12 +370,11 @@
 
     function saveSeatingPlan() {
       const plan = {
-        CONFIG,
+        seatsInRow,
         grid
       }
-      console.log("Saving: ", plan);
 
-      $.post("/api/save.php",
+      $.post(API.save,
         {
           refId: 123,
           refEntityName: "class", 
@@ -408,15 +387,11 @@
     }
 
     function clearGrid() {
-      if (getUnseatedStudents().length < STUDENTS.length && confirm("Sitzordnung leeren?")) {
+      if (getUnseatedStudents().length < students.length && confirm("Sitzordnung leeren?")) {
         rebuildGrid(false);
       }
     }
 
-    function init() {
-      rebuildGrid(false);
-      $('.toast').toast({ delay: 1000 });
-    }
 
   </script>
 </head>
