@@ -12,7 +12,6 @@ $pdo->exec("
   CREATE TABLE IF NOT EXISTS seatingplan (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     refId INTEGER NOT NULL,
-    refEntityName TEXT NOT NULL,
     jsonContent TEXT NOT NULL,
     creatorName TEXT NOT NULL,
     isPublic INTEGER NOT NULL DEFAULT 0,
@@ -22,13 +21,12 @@ $pdo->exec("
 
 $stmt = $pdo->prepare("
   INSERT INTO seatingplan 
-  (refId, refEntityName, jsonContent, creatorName, isPublic, created)
+  (refId, jsonContent, creatorName, isPublic, created)
   VALUES
-  (:refId, :refEntityName, :jsonContent, :creatorName, :isPublic, :created);
+  (:refId, :jsonContent, :creatorName, :isPublic, :created);
 ");
 
 $refId = $_POST["refId"];
-$refEntityName = $_POST["refEntityName"];
 $jsonContent = $_POST["jsonContent"];
 $creatorName = $_POST["creatorName"];
 $isPublic = $_POST["isPublic"] || 0;
@@ -38,7 +36,6 @@ $created = date('c');
 
 $stmt->execute([
   ":refId" => $refId,
-  ":refEntityName" => $refEntityName,
   ":jsonContent" => $jsonContent,
   ":creatorName" => $creatorName,
   ":isPublic" => $isPublic,

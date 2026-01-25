@@ -12,7 +12,6 @@ $pdo->exec("
   CREATE TABLE IF NOT EXISTS seatingplan (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     refId INTEGER NOT NULL,
-    refEntityName TEXT NOT NULL,
     jsonContent TEXT NOT NULL,
     creatorName TEXT NOT NULL,
     isPublic INTEGER NOT NULL DEFAULT 0,
