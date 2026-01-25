@@ -1,8 +1,6 @@
 <?php
 
 error_reporting(E_ALL);
-
-// Make sure they are displayed on the page
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
@@ -16,21 +14,24 @@ $pdo->exec("
     refId INTEGER NOT NULL,
     refEntityName TEXT NOT NULL,
     jsonContent TEXT NOT NULL,
+    creatorName TEXT NOT NULL,
+    isPublic INTEGER NOT NULL DEFAULT 0,
     created TEXT NOT NULL
   )
 ");
 
-
 $stmt = $pdo->prepare("
   INSERT INTO seatingplan 
-  (refId, refEntityName, jsonContent, created)
+  (refId, refEntityName, jsonContent, creatorName, isPublic, created)
   VALUES
-  (:refId, :refEntityName, :jsonContent, :created);
+  (:refId, :refEntityName, :jsonContent, :creatorName, :isPublic, :created);
 ");
 
 $refId = $_POST["refId"];
 $refEntityName = $_POST["refEntityName"];
 $jsonContent = $_POST["jsonContent"];
+$creatorName = $_POST["creatorName"];
+$isPublic = $_POST["isPublic"] || 0;
 $created = date('c');
 
 // Check access rights first for authed user on referenced entities!!
@@ -39,5 +40,7 @@ $stmt->execute([
   ":refId" => $refId,
   ":refEntityName" => $refEntityName,
   ":jsonContent" => $jsonContent,
+  ":creatorName" => $creatorName,
+  ":isPublic" => $isPublic,
   ":created" => $created
 ]);
