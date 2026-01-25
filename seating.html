@@ -7,9 +7,7 @@
   <title>Sitzordnung</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
     integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
-    integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
     crossorigin="anonymous"></script>
@@ -172,39 +170,39 @@
           class: "m-3 d-flex align-items-start " + rowDirectionCls,
         });
 
-        
+
         for (let colIdx = 0; colIdx < row.length; colIdx++) {
           const seat = row[colIdx];
           let cssClasses = "seat border border-dark text-center px-1 d-inline-block align-items-center align-content-center";
           let seatText = "";
-          
+
           if (seat.studentId) {
             const student = studentMap[seat.studentId];
-            
+
             if (seat.studentId === firstClickedStudentId) {
               cssClasses += " highlighted";
             }
-            
+
             if (changed.indexOf(seat.studentId) > -1) {
               cssClasses += " changed";
             }
           }
-          
+
           $('<div>', {
             class: cssClasses,
             id: seat.id,
             html: renderStudent(seat.studentId)
           }).appendTo(rowElem);
-          
+
           if (colIdx < row.length - 1) {
             $('<div>', {
               class: gaps.indexOf(seat.id) === -1 ? "gap" : "gap gap_active"
             })
-            .on("click", () => toggleGap(seat.id))
-            .appendTo(rowElem);
+              .on("click", () => toggleGap(seat.id))
+              .appendTo(rowElem);
           }
         }
-        
+
         if (CONFIG.teachersView) {
           addRemoveButtons = generateAddRemoveButtons(rowIdx);
           addRemoveButtons.appendTo(rowElem);
@@ -390,14 +388,28 @@
       renderGrid();
     }
 
+    function saveSeatingPlan() {
+      const plan = {
+        CONFIG,
+        grid
+      }
+      console.log("Saving: ", plan);
+
+      $.post("/api/save.php",
+        { plan: JSON.stringify(plan) },
+        () => $('.toast').toast("show")
+      );
+    }
+
     function clearGrid() {
-      if (getUnseatedStudents().length < STUDENTS.length && confirm("Alle SuS aus der Sitzordnung entfernen?")) {
+      if (getUnseatedStudents().length < STUDENTS.length && confirm("Sitzordnung leeren?")) {
         rebuildGrid(false);
       }
     }
 
     function init() {
       rebuildGrid(false);
+      $('.toast').toast({ delay: 1000 });
     }
 
   </script>
@@ -419,9 +431,16 @@
     <button id="clearButton" class="btn btn-primary mx-2 my-1" onclick="fillUnseatedStudents()">Verbleibende SuS
       zufällig verteilen</button>
     <button class="btn btn-warning mx-2 my-1" onclick="clearGrid()">Alle Plätze leeren</button>
+    <button class="btn btn-success" onclick="saveSeatingPlan()">Sitzordnung speichern</button>
   </div>
 
   <div id="unseated" class="m-3 d-flex flex-wrap align-items-start">
+  </div>
+
+  <div class="toast mx-4" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-body">
+      Hello, world! This is a toast message.
+    </div>
   </div>
 
 </body>
