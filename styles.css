@@ -79,3 +79,16 @@
   background-color: lightgreen;
   color: white;
 }
+
+.btn-disabled {
+  border-color: gray;
+  background-color: #ddd;
+  color: gray;
+  cursor: not-allowed !important;
+}
+
+.btn-disabled:hover {
+  border-color: gray;
+  background-color: #ddd;
+  color: gray;
+}

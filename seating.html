@@ -222,14 +222,12 @@
       $(".addButton, .removeButton").on("click", (e) => onModify(e.target.id));
     }
 
-    function generateAddRemoveButtons(rowIndex, isStart) {
-      let html;
-      if (isStart) {
-        html = `<div class='addButton' id='prepend_${rowIndex}'>+</div><div class='removeButton' id='shift_${rowIndex}'>-</div>`;
-      } else {
-        html = `<div class='addButton' id='push_${rowIndex}'>+</div><div class='removeButton' id='pop_${rowIndex}'>-</div>`
-      }
+    function generateAddRemoveButtons(rowIndex) {
+      const add_disabled = seatsInRow[rowIndex] >= MAX_COLUMNS ? "btn-disabled" : "";
+      const remove_disabled = seatsInRow[rowIndex] <= 1 ? "btn-disabled" : "";
 
+      const html = `<div class='addButton ${add_disabled}' id='prepend_${rowIndex}'>+</div><div class='removeButton ${remove_disabled}' id='shift_${rowIndex}'>-</div>`;
+      
       return $('<div>', {
         class: "addRemoveButtons",
         html
@@ -238,13 +236,13 @@
 
     function onModify(elemId) {
       const [action, rowIdx] = elemId.split("_");
-      if (action === "prepend" || action === "push") {
+      if (action === "prepend" && seatsInRow[rowIdx] < MAX_COLUMNS) {
         seatsInRow[rowIdx]++;
-      } else if (action === "shift" || action === "pop") {
+      } 
+      
+      if (action === "shift" && seatsInRow[rowIdx] > 1) {
         seatsInRow[rowIdx]--;
-      } else {
-        console.error("Invalid command for elemId " + elemId);
-      }
+      } 
       rebuildGrid(true);
     }
 
