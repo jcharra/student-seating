@@ -15,6 +15,7 @@
   <script src="config.js"></script>
   <script>
     let students = [];
+    let teacherName = "";
     const studentMap = {};
 
     const MAX_ROWS = 6;
@@ -36,8 +37,10 @@
     let teachersView = true;
 
     function init() {
-      $.get(API.getStudents, (data) => {
-        students = data;
+      $.get(API.getCourseData, (data) => {
+        students = data.students;
+        teacherName = data.teacherName;
+
         addShortnames();
         students.forEach(s => {
           studentMap[s.id] = s;
@@ -137,7 +140,7 @@
       // Teacher node
       const teacherNode = $('<div>', {
         class: 'justify-center border border-dark w-25 text-center py-3 my-2 teacher',
-        html: '<div id="teacherName">Herr Charra</div><div id="switchHint">Ansicht wechseln</div>',
+        html: `<div id="teacherName">${teacherName}</div><div id="switchHint">Ansicht wechseln</div>`,
         id: 'teacher'
       });
       container.append(teacherNode);
@@ -425,7 +428,7 @@
     <button id="clearButton" class="btn btn-primary mx-2 my-1" onclick="fillUnseatedStudents()">Verbleibende SuS
       zufällig verteilen</button>
     <button class="btn btn-warning mx-2 my-1" onclick="clearGrid()">Alle Plätze leeren</button>
-    <button class="btn btn-success" onclick="saveSeatingPlan()">Sitzordnung speichern</button>
+    <button class="btn btn-success my-1" onclick="saveSeatingPlan()">Sitzordnung speichern</button>
   </div>
 
   <div id="unseated" class="m-3 d-flex flex-wrap align-items-start justify-content-center">
