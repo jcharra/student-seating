@@ -47,6 +47,23 @@
   background-color: beige;
 }
 
+#switchHint {
+  display: none;
+}
+
+.teacher:hover {
+  background-color: bisque;
+  cursor: pointer;
+}
+
+.teacher:hover #switchHint {
+  display: block;
+}
+
+.teacher:hover #teacherName {
+  display: none;
+}
+
 .addRemoveButtons div {
   width: 30px;
   height: 30px;
@@ -91,4 +108,10 @@
   border-color: gray;
   background-color: #ddd;
   color: gray;
+}
+
+#feedback {
+  position: fixed;
+  top: 10px;
+  left: 10px;
 }

@@ -34,19 +34,19 @@
     let unseated = [];
     let firstClickedStudentId = null;
     let teachersView = true;
-    
+
     function init() {
       $.get(API.getStudents, (data) => {
-         students = data;
-         addShortnames();
-         students.forEach(s => {
-           studentMap[s.id] = s;
-         });
-         seatsInRow = Array(Math.ceil(students.length / 8)).fill(8);
-         rebuildGrid(false);
+        students = data;
+        addShortnames();
+        students.forEach(s => {
+          studentMap[s.id] = s;
+        });
+        seatsInRow = Array(Math.ceil(students.length / 8)).fill(8);
+        rebuildGrid(false);
       });
 
-      $('.toast').toast({ delay: 1000 });
+      $('.toast').toast({ delay: 2000 });
     }
 
     function toggleView() {
@@ -135,12 +135,12 @@
       classRoom.append(container);
 
       // Teacher node
-      const $el = $('<div>', {
+      const teacherNode = $('<div>', {
         class: 'justify-center border border-dark w-25 text-center py-3 my-2 teacher',
-        text: 'Herr Charra',
+        html: '<div id="teacherName">Herr Charra</div><div id="switchHint">Ansicht wechseln</div>',
         id: 'teacher'
       });
-      container.append($el);
+      container.append(teacherNode);
 
       // Grid nodes
       for (let rowIdx = 0; rowIdx < grid.length; rowIdx++) {
@@ -215,6 +215,8 @@
       changed = [];
 
       $("#clearButton").prop("disabled", unseated.length === 0);
+      $("#teacher").off("click");
+      $("#teacher").on("click", toggleView);
 
       $(".seat").off("click");
       $(".seat").on("click", (e) => onSelect(e.target.id));
@@ -224,25 +226,37 @@
 
     function generateAddRemoveButtons(rowIndex) {
       const add_disabled = seatsInRow[rowIndex] >= MAX_COLUMNS ? "btn-disabled" : "";
-      const remove_disabled = seatsInRow[rowIndex] <= 1 ? "btn-disabled" : "";
+      const remove_disabled = seatsInRow[rowIndex] <= 1 || getTotalNumberOfSeats() <= students.length ? "btn-disabled" : "";
 
       const html = `<div class='addButton ${add_disabled}' id='prepend_${rowIndex}'>+</div><div class='removeButton ${remove_disabled}' id='shift_${rowIndex}'>-</div>`;
-      
+
       return $('<div>', {
         class: "addRemoveButtons",
         html
       });
     }
 
+    function getTotalNumberOfSeats() {
+      return seatsInRow.reduce((a, b) => a + b, 0);
+    }
+
     function onModify(elemId) {
       const [action, rowIdx] = elemId.split("_");
-      if (action === "prepend" && seatsInRow[rowIdx] < MAX_COLUMNS) {
-        seatsInRow[rowIdx]++;
-      } 
-      
-      if (action === "shift" && seatsInRow[rowIdx] > 1) {
-        seatsInRow[rowIdx]--;
-      } 
+      if (action === "prepend") {
+        if (seatsInRow[rowIdx] < MAX_COLUMNS) {
+          seatsInRow[rowIdx]++;
+        } else {
+          showToast("Es sind maximal " + MAX_COLUMNS + " Plätze pro Reihe erlaubt!");
+        }
+      }
+
+      if (action === "shift") {
+        if (seatsInRow[rowIdx] > 1 && getTotalNumberOfSeats() > students.length) {
+          seatsInRow[rowIdx]--;
+        } else {
+          showToast("Die Mindestanzahl von Sitzen darf nicht unterschritten werden!");
+        }
+      }
       rebuildGrid(true);
     }
 
@@ -375,12 +389,12 @@
       $.post(API.save,
         {
           refId: 123,
-          refEntityName: "class", 
+          refEntityName: "class",
           jsonContent: JSON.stringify(plan),
           creatorName: "Charra, Johannes",
           isPublic: 1
         },
-        () => $('.toast').toast("show")
+        () => showToast("Die Sitzordnung wurde gespeichert!")
       );
     }
 
@@ -390,7 +404,11 @@
       }
     }
 
-
+    function showToast(contentHtml) {
+      const toast = $('#feedback');
+      toast.find('.toast-body').html(contentHtml);
+      toast.toast('show');
+    }
   </script>
 </head>
 
@@ -403,20 +421,17 @@
   <div id="classroom">
   </div>
 
-  <button id="toggleViewButton" class="btn btn-success mx-2 mb-1" onclick="toggleView()">Zur Schüleransicht
-    wechseln</button>
-
-  <div id="distribution">
+  <div id="distribution" class="d-flex justify-content-center">
     <button id="clearButton" class="btn btn-primary mx-2 my-1" onclick="fillUnseatedStudents()">Verbleibende SuS
       zufällig verteilen</button>
     <button class="btn btn-warning mx-2 my-1" onclick="clearGrid()">Alle Plätze leeren</button>
     <button class="btn btn-success" onclick="saveSeatingPlan()">Sitzordnung speichern</button>
   </div>
 
-  <div id="unseated" class="m-3 d-flex flex-wrap align-items-start">
+  <div id="unseated" class="m-3 d-flex flex-wrap align-items-start justify-content-center">
   </div>
 
-  <div class="toast mx-4" role="alert" aria-live="assertive" aria-atomic="true">
+  <div id="feedback" class="toast mx-4" role="alert" aria-live="assertive" aria-atomic="true">
     <div class="toast-body">
       Sitzordnung erfolgreich gespeichert!
     </div>
