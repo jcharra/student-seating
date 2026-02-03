@@ -8,6 +8,7 @@ $dbFile = __DIR__ . '/data.db';
 $pdo = new PDO("sqlite:$dbFile");
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+// Lazy creation of table only for dummy purposes
 $pdo->exec("
   CREATE TABLE IF NOT EXISTS seatingplan (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
