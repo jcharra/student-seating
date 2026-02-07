@@ -19,7 +19,7 @@ class SeatingOrder {
     this.gaps = [];
     this.changed = [];
 
-    $.get(this.api.getCourseData + this.courseId, (data) => {
+    $.get(this.api.getCourseData + "?refId=" + this.courseId, (data) => {
       this.students = data.students;
       this.teacherName = data.teacherName;
 
@@ -163,7 +163,7 @@ class SeatingOrder {
           $('<div>', {
             class: this.gaps.indexOf(seat.id) === -1 ? "gap" : "gap gap_active"
           })
-            .on("click", () => toggleGap(seat.id))
+            .on("click", () => this.toggleGap(seat.id))
             .appendTo(rowElem);
         }
       }
@@ -374,7 +374,7 @@ class SeatingOrder {
 
     $.post(this.api.save,
       {
-        refId: 123, // use ID set in init()
+        refId: this.courseId, 
         jsonContent: JSON.stringify(plan),
         isPublic: 1
       },
