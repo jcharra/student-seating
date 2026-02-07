@@ -70,20 +70,21 @@
   border-radius: 50%;
   text-align: center;
   align-content: center;
-  font-size: 14pt;
+  font-size: 18px;
   font-weight: 900;
   margin: 5px 15px;
   cursor: pointer;  
+  line-height: 18px;
 }
 
 
 .removeButton {
-  border: 1px solid red;
+  border: 2px solid red;
   color: red;
 }
 
 .addButton {
-  border: 1px solid green;
+  border: 2px solid green;
   color: green;
 }
 
