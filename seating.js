@@ -54,7 +54,10 @@ class SeatingOrder {
       let fname = s.firstname;
       if (s.firstname.length > 10) {
         if (s.firstname.indexOf("-") > -1) {
-          fname = s.firstname.split("-").map(c => c.length > 10 ? c.slice(0, 8) + "." : c).join(" ");
+          const parts = s.firstname.split("-");
+          fname = parts[0] + "-" + parts[1][0] + ".";
+        } else if (s.firstname.indexOf(" ") > -1) {
+          fname = s.firstname.split(" ")[0];
         } else {
           fname = s.firstname.slice(0, 8) + ".";
         }
@@ -63,11 +66,11 @@ class SeatingOrder {
     }
 
     for (const s of this.students) {
-      for (let i = s.fullname.lastIndexOf(" "); i < s.fullname.length; i++) {
+      for (let i = s.fullname.indexOf(" "); i < s.fullname.length; i++) {
         // check incrementally longer names for uniqueness
         const candidate = s.fullname.slice(0, i);
-        if (this.students.filter(s2 => s.id != s2.id && s2.fullname.startsWith(candidate)).length === 0) {
-          s.shortname = i > s.firstname.length ? candidate + "." : candidate.trim();
+        if (this.students.filter(s2 => s.id != s2.id && this.removeAccents(s2.fullname).startsWith(this.removeAccents(candidate))).length === 0) {
+          s.shortname = i > s.firstname.length && candidate[candidate.length - 1] != " " ? candidate + "." : candidate.trim();
           break;
         }
       }
@@ -76,6 +79,13 @@ class SeatingOrder {
         s.shortname = s.fullname;
       }
     }
+  }
+
+  removeAccents(str) {
+    // Ignore accents when comparing names for uniqueness.
+    return str
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
   }
 
   rebuildGrid(keepSeatedStudents) {
@@ -247,7 +257,7 @@ class SeatingOrder {
 
   toggleGap(seatId) {
     if (this.gaps.indexOf(seatId) > -1) {
-      this.gaps = gaps.filter(g => g !== seatId);
+      this.gaps = this.gaps.filter(g => g !== seatId);
     } else {
       this.gaps.push(seatId);
     }
@@ -374,7 +384,7 @@ class SeatingOrder {
 
     $.post(this.api.save,
       {
-        refId: this.courseId, 
+        refId: this.courseId,
         jsonContent: JSON.stringify(plan),
         isPublic: 1
       },

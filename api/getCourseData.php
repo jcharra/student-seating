@@ -1,6 +1,5 @@
 <?php
 
-
 if (!isset($_GET["refId"])) {
   http_response_code(400);
   echo "Bad Request: Missing required parameters.";
@@ -11,15 +10,15 @@ $refId = $_GET["refId"];
 
 // static dummy data
 $students = [
-  ["id" => 123, "name" => "Arnoldl", "firstname" => "Ella", "cls" => "2ES", "lang" => "de"],
-  ["id" => 124, "name" => "Arnulf", "firstname" => "Ella", "cls" => "2ES", "lang" => "fr"],
-  ["id" => 125, "name" => "Chapmanx", "firstname" => "Brandon", "cls" => "2ES", "lang" => "de"],
+  ["id" => 123, "name" => "Allerseits", "firstname" => "Otto Bernhard", "cls" => "2ES", "lang" => "de"],
+  ["id" => 124, "name" => "Guerrero del Torro", "firstname" => "Jorge Antonio", "cls" => "2ES", "lang" => "fr"],
+  ["id" => 125, "name" => "Chapmanx", "firstname" => "Eliane", "cls" => "2ES", "lang" => "de"],
   ["id" => 126, "name" => "Colemans", "firstname" => "Carl", "cls" => "2ES", "lang" => "de"],
   ["id" => 127, "name" => "Cornishw", "firstname" => "Hilda", "cls" => "2ES", "lang" => "fr"],
   ["id" => 128, "name" => "Dowdy", "firstname" => "Emma", "cls" => "2ES", "lang" => "fr"],
   ["id" => 129, "name" => "Unhold", "firstname" => "Ella", "cls" => "2ES", "lang" => "fr"],
-  ["id" => 130, "name" => "Grossartigh", "firstname" => "Arthur", "cls" => "2ES", "lang" => "de"],
-  ["id" => 131, "name" => "Guintardt", "firstname" => "Gavin", "cls" => "2ES", "lang" => "fr"],
+  ["id" => 130, "name" => "Grossartigh", "firstname" => "Jérémy", "cls" => "2ES", "lang" => "de"],
+  ["id" => 131, "name" => "Guintardt", "firstname" => "Jeremy", "cls" => "2ES", "lang" => "fr"],
   ["id" => 132, "name" => "Herforderlichu", "firstname" => "Jacob", "cls" => "2ES", "lang" => "fr"],
   ["id" => 133, "name" => "Hilll", "firstname" => "Sophie", "cls" => "2ES", "lang" => "fr"],
   ["id" => 134, "name" => "Kremerlangi", "firstname" => "Jason", "cls" => "2ES", "lang" => "fr"],
